@@ -1,25 +1,27 @@
 # TimeTo
 
-一个纯html的极简风格的闹钟和倒计时。好吧~_~……其实是写的一个时间选择元素，你可以把他插入到你的项目中(bushi)
+A minimalist time toolkit in pure HTML — alarm, countdown timer, stopwatch, and world clock, all in one page.
 
-## 功能
+[中文说明](README_zh.md)
 
-- **闹钟** — 滚轮选择时间，支持桌面通知
-- **倒计时** — 时:分:秒选择，暂停/继续，完成后蜂鸣提醒
-- **秒表** — 厘秒精度，计圈功能
-- **世界时钟** — 自动检测本地时区，IP 地理定位优化，6 个预设城市
+## Features
 
-## 技术
+- **Alarm** — scroll-wheel time picker with desktop notifications
+- **Countdown** — hours:minutes:seconds picker, pause/resume, beep on completion
+- **Stopwatch** — centisecond precision with lap tracking
+- **World Clock** — auto-detect local timezone, IP geolocation refinement, 6 preset cities
 
-- 纯 HTML/CSS/JS，无依赖，无构建步骤
-- 自定义滚轮组件（拖拽惯性 + 鼠标滚轮 + 键盘操作）
-- Web Audio API 蜂鸣提示
-- 响应式布局：桌面左侧导航，移动端底部标签栏
+## Tech
 
-## 文件
+- Pure HTML/CSS/JS, zero dependencies, no build step
+- Custom scroll-wheel component with drag inertia, mouse wheel, and keyboard support
+- Web Audio API beep alerts
+- Responsive layout: sidebar nav on desktop, bottom tab bar on mobile
 
-| 文件 | 说明 |
-|------|------|
-| `index.html` | 页面结构 |
-| `style.css` | 样式 |
-| `app.js` | 交互逻辑 |
+## Files
+
+| File | Description |
+|------|-------------|
+| `index.html` | Page structure |
+| `style.css` | Styles |
+| `app.js` | Application logic |
