@@ -646,19 +646,21 @@
     initClocks();
     setInterval(updateClocks, 1000);
 
-    // IP geolocation: refine primary city (fallback: browser timezone stays)
-    const controller = new AbortController();
-    setTimeout(() => controller.abort(), 5000);
-    fetch('https://ipapi.co/json/', { signal: controller.signal })
-        .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-        .then(data => {
-            if (data.error) return;
-            if (data.timezone && isValidTimezone(data.timezone)) {
-                primaryCity = { name: resolveCityName(data.timezone, data.city), tz: data.timezone };
-                initClocks();
-            }
-        })
-        .catch(() => {});
+    // IP geolocation: only used when browser timezone is unavailable
+    if (!browserTz || !isValidTimezone(browserTz)) {
+        const controller = new AbortController();
+        setTimeout(() => controller.abort(), 5000);
+        fetch('https://ipapi.co/json/', { signal: controller.signal })
+            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+            .then(data => {
+                if (data.error) return;
+                if (data.timezone && isValidTimezone(data.timezone)) {
+                    primaryCity = { name: resolveCityName(data.timezone, data.city), tz: data.timezone };
+                    initClocks();
+                }
+            })
+            .catch(() => {});
+    }
 
     // ==================== Shared ====================
 
