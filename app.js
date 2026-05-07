@@ -534,8 +534,8 @@
     $('btnSwReset').onclick = swReset;
 
     // ==================== World Clock ====================
-    // Primary clock: browser timezone by default, refined via IP geolocation.
-    // Preset cities: 6 fixed. If visitor's timezone matches a preset, it's skipped in the list.
+    // Primary clock: browser timezone. Preset cities: 6 fixed.
+    // If visitor's timezone matches a preset, it's skipped in the list.
 
     const cities = [
         { name: '北京', tz: 'Asia/Shanghai' },
@@ -560,20 +560,13 @@
         'Pacific/Auckland': '奥克兰',
     };
 
-    function isValidTimezone(tz) {
-        try { new Intl.DateTimeFormat('en', { timeZone: tz }); return true; }
-        catch { return false; }
-    }
-
-    function resolveCityName(tz, apiCity) {
-        if (cityMap[tz]) return cityMap[tz];
-        if (apiCity) return apiCity;
-        return '本地';
+    function resolveCityName(tz) {
+        return cityMap[tz] || '本地';
     }
 
     const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const defaultPreset = cities.find(c => c.tz === browserTz);
-    let primaryCity = defaultPreset || { name: resolveCityName(browserTz), tz: browserTz };
+    const primaryCity = defaultPreset || { name: resolveCityName(browserTz), tz: browserTz };
 
     function initClocks() {
         const list = $('clockList');
@@ -645,38 +638,6 @@
 
     initClocks();
     setInterval(updateClocks, 1000);
-
-    // IP geolocation: only used to get city name for display.
-    // Browser timezone is always the source of truth for the timezone itself.
-    function applyCityName(tz, city) {
-        if (tz && isValidTimezone(tz) && city) {
-            const name = resolveCityName(tz, city);
-            if (name !== '本地') {
-                primaryCity = { name, tz: primaryCity.tz };
-                initClocks();
-            }
-        }
-    }
-
-    const ipApis = [
-        { url: 'https://ipapi.co/json/', parse: d => ({ tz: d.timezone, city: d.city }) },
-        { url: 'https://ipinfo.io/json', parse: d => ({ tz: d.timezone, city: d.city }) },
-    ];
-
-    function tryFetchIp(idx) {
-        if (idx >= ipApis.length) return;
-        const api = ipApis[idx];
-        const c = new AbortController();
-        setTimeout(() => c.abort(), 5000);
-        fetch(api.url, { signal: c.signal })
-            .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-            .then(data => {
-                const { tz, city } = api.parse(data);
-                applyCityName(tz, city);
-            })
-            .catch(() => tryFetchIp(idx + 1));
-    }
-    tryFetchIp(0);
 
     // ==================== Shared ====================
 
