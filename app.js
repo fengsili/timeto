@@ -646,49 +646,37 @@
     initClocks();
     setInterval(updateClocks, 1000);
 
-    // IP geolocation: refine primary city (fallback: browser timezone stays)
-    function fetchIpTz() {
-        const c1 = new AbortController();
-        setTimeout(() => c1.abort(), 5000);
-        fetch('https://ipapi.co/json/', { signal: c1.signal })
-            .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-            .then(data => {
-                if (data.error) throw new Error('api error');
-                const tz = data.timezone;
-                const cc = data.country_code;
-                // Validate: timezone continent should match country
-                if (tz && isValidTimezone(tz) && cc) {
-                    const continent = tz.split('/')[0];
-                    const valid = (cc === 'CN' || cc === 'JP' || cc === 'KR') ? continent === 'Asia'
-                        : cc === 'US' || cc === 'CA' ? continent === 'America'
-                        : cc === 'AU' || cc === 'NZ' ? continent === 'Pacific' || continent === 'Australia'
-                        : true;
-                    if (valid) {
-                        primaryCity = { name: resolveCityName(tz, data.city), tz };
-                        initClocks();
-                        return;
-                    }
-                }
-                throw new Error('invalid data');
-            })
-            .catch(() => {
-                // Fallback: ip-api.com (HTTP only, works on localhost)
-                if (location.protocol !== 'https:') {
-                    const c2 = new AbortController();
-                    setTimeout(() => c2.abort(), 5000);
-                    fetch('http://ip-api.com/json/?fields=city,timezone', { signal: c2.signal })
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data.status === 'success' && data.timezone && isValidTimezone(data.timezone)) {
-                                primaryCity = { name: resolveCityName(data.timezone, data.city), tz: data.timezone };
-                                initClocks();
-                            }
-                        })
-                        .catch(() => {});
-                }
-            });
+    // IP geolocation: only used to get city name for display.
+    // Browser timezone is always the source of truth for the timezone itself.
+    function applyCityName(tz, city) {
+        if (tz && isValidTimezone(tz) && city) {
+            const name = resolveCityName(tz, city);
+            if (name !== '本地') {
+                primaryCity = { name, tz: primaryCity.tz };
+                initClocks();
+            }
+        }
     }
-    fetchIpTz();
+
+    const ipApis = [
+        { url: 'https://ipapi.co/json/', parse: d => ({ tz: d.timezone, city: d.city }) },
+        { url: 'https://ipinfo.io/json', parse: d => ({ tz: d.timezone, city: d.city }) },
+    ];
+
+    function tryFetchIp(idx) {
+        if (idx >= ipApis.length) return;
+        const api = ipApis[idx];
+        const c = new AbortController();
+        setTimeout(() => c.abort(), 5000);
+        fetch(api.url, { signal: c.signal })
+            .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(data => {
+                const { tz, city } = api.parse(data);
+                applyCityName(tz, city);
+            })
+            .catch(() => tryFetchIp(idx + 1));
+    }
+    tryFetchIp(0);
 
     // ==================== Shared ====================
 
