@@ -2,6 +2,8 @@
 
 一个纯html的极简风格的闹钟和倒计时。好吧~_~……其实是写的一个时间选择元素，你可以把他插入到你的项目中(bushi)
 
+示例：[timeto.fengsili.online](https://timeto.fengsili.online)
+
 ## 功能
 
 - **闹钟** — 滚轮选择时间，支持桌面通知
